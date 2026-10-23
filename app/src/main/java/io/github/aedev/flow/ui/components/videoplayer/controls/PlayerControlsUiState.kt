@@ -26,6 +26,7 @@ internal data class PlayerControlsUiState(
     val isFullscreen: Boolean = false,
     val isPortraitFullscreen: Boolean = false,
     val isPipSupported: Boolean = false,
+    val closesOnBack: Boolean = false,
     val chapters: List<StreamSegment> = emptyList(),
     val storyboard: List<StoryboardLevel> = emptyList(),
     val heatmap: VideoHeatmap? = null,

@@ -295,6 +295,7 @@ internal fun PlayerControlsOverlay(
                             resizeMode = state.resizeMode,
                             resizeModeLabels = resizeModes,
                             isPipSupported = state.isPipSupported,
+                            closesOnBack = state.closesOnBack,
                             sbSubmitEnabled = state.sbSubmitEnabled,
                             isSponsorBlockAvailable = state.isSponsorBlockAvailable,
                             isSponsorBlockOffForVideo = state.isSponsorBlockOffForVideo,

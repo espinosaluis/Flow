@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.ClosedCaption
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Lock
@@ -79,6 +80,7 @@ internal fun VideoPlayerTopBar(
     resizeMode: Int,
     resizeModeLabels: List<String>,
     isPipSupported: Boolean,
+    closesOnBack: Boolean = false,
     sbSubmitEnabled: Boolean,
     isSponsorBlockAvailable: Boolean,
     isSponsorBlockOffForVideo: Boolean,
@@ -124,8 +126,8 @@ internal fun VideoPlayerTopBar(
             ) {
                 PlayerPillIconButton(
                     onClick = actions.onBack,
-                    icon = Icons.Rounded.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.btn_minimize),
+                    icon = if (closesOnBack) Icons.Rounded.Close else Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = stringResource(if (closesOnBack) R.string.close_player else R.string.btn_minimize),
                     buttonSize = actionButtonSize,
                     iconSize = actionIconSize,
                     containerColor = Color.Transparent,

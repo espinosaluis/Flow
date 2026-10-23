@@ -7,6 +7,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.aedev.flow.data.local.PlayerPreferences
+import io.github.aedev.flow.player.GlobalPlayerState
 import io.github.aedev.flow.ui.components.videoplayer.PlayerDraggableState
 import io.github.aedev.flow.ui.components.videoplayer.PlayerSheetValue
 import io.github.aedev.flow.ui.screens.player.state.PlayerScreenState
@@ -23,6 +27,10 @@ internal fun PlayerBackEffects(
     screenState: PlayerScreenState,
     isInPipMode: Boolean,
 ) {
+    val context = LocalContext.current
+    val preferences = remember(context) { PlayerPreferences(context) }
+    val autoPipEnabled by preferences.autoPipEnabled.collectAsStateWithLifecycle(initialValue = true)
+
     BackHandler(enabled = screenState.isFullscreen) {
         screenState.isFullscreen = false
         screenState.isFullscreenPortrait = false
@@ -39,11 +47,16 @@ internal fun PlayerBackEffects(
     ) { progress ->
         backScrubInFlight = true
         try {
-            playerSheetState.beginBackScrub()
-            progress.collect { event -> playerSheetState.scrubBack(event.progress) }
-            playerSheetState.collapse()
+            if (autoPipEnabled) {
+                playerSheetState.beginBackScrub()
+                progress.collect { event -> playerSheetState.scrubBack(event.progress) }
+                playerSheetState.collapse()
+            } else {
+                progress.collect { }
+                GlobalPlayerState.requestDismiss()
+            }
         } catch (e: CancellationException) {
-            playerSheetState.expand()
+            if (autoPipEnabled) playerSheetState.expand()
             // Returning normally from here, before the flow was collected, makes activity-compose
             // throw "You must collect the progress flow" (#1307).
             throw e

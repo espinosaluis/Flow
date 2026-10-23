@@ -2802,7 +2802,7 @@
     <string name="player_settings_overlay_pip">Picture-in-Picture Button</string>
     <string name="player_settings_overlay_pip_subtitle">Show PiP button on the video player overlay</string>
     <string name="player_settings_auto_pip_title">Auto Picture-in-Picture</string>
-    <string name="player_settings_auto_pip_subtitle">Switch to picture-in-picture when you leave the app</string>
+    <string name="player_settings_auto_pip_subtitle">Switch to picture-in-picture when you leave the app. When off, Back closes the video instead of showing the mini player.</string>
     <string name="player_settings_overlay_autoplay">Autoplay Toggle</string>
     <string name="player_settings_overlay_autoplay_subtitle">Show autoplay toggle on the video player overlay</string>
     <string name="player_settings_overlay_sleep_timer">Sleep Timer Button</string>

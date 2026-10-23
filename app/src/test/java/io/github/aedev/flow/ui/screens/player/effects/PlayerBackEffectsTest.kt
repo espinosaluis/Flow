@@ -9,12 +9,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import io.github.aedev.flow.data.local.PlayerPreferences
+import io.github.aedev.flow.player.GlobalPlayerState
 import io.github.aedev.flow.ui.components.videoplayer.PlayerDraggableState
 import io.github.aedev.flow.ui.components.videoplayer.PlayerSheetValue
 import io.github.aedev.flow.ui.screens.player.state.PlayerScreenState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
@@ -33,7 +36,8 @@ class PlayerBackEffectsTest {
 
     private lateinit var sheet: PlayerDraggableState
 
-    private fun setContent() {
+    private fun setContent(autoPipEnabled: Boolean = true) {
+        runBlocking { PlayerPreferences(rule.activity).setAutoPipEnabled(autoPipEnabled) }
         rule.setContent {
             val scope = rememberCoroutineScope()
             sheet = remember { PlayerDraggableState(Animatable(0f), Animatable(0f), Animatable(0f), scope) }
@@ -86,5 +90,20 @@ class PlayerBackEffectsTest {
         rule.waitForIdle()
 
         assertThat(sheet.currentValue).isEqualTo(PlayerSheetValue.Collapsed)
+    }
+
+    @Test
+    fun `a completed back gesture requests video close when auto PiP is off`() {
+        setContent(autoPipEnabled = false)
+        GlobalPlayerState.resetDismiss()
+
+        rule.runOnIdle { backStarted() }
+        rule.waitForIdle()
+        rule.runOnIdle { backDispatcher.onBackPressed() }
+        rule.waitForIdle()
+
+        assertThat(GlobalPlayerState.dismissRequested.value).isTrue()
+        assertThat(sheet.currentValue).isEqualTo(PlayerSheetValue.Expanded)
+        GlobalPlayerState.resetDismiss()
     }
 }

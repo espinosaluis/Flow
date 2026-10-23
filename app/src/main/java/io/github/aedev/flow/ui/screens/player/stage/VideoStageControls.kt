@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.media3.common.util.UnstableApi
 import io.github.aedev.flow.R
 import io.github.aedev.flow.player.EnhancedPlayerManager
+import io.github.aedev.flow.player.GlobalPlayerState
 import io.github.aedev.flow.player.PictureInPictureHelper
 import io.github.aedev.flow.player.SleepTimerManager
 import io.github.aedev.flow.player.dlna.DlnaCastManager
@@ -113,6 +114,7 @@ internal fun VideoStageControls(
             isPipSupported =
                 PictureInPictureHelper.isPlayerPopupSupported(context) &&
                     pipPreferences.manualPipButtonEnabled,
+            closesOnBack = !pipPreferences.autoPipEnabled,
             chapters = playerUiState.chapters,
             storyboard = playerUiState.storyboard,
             heatmap = playerUiState.heatmap,
@@ -159,7 +161,13 @@ internal fun VideoStageControls(
             onPrevious = { playerViewModel.playPrevious() },
             onNext = { playerViewModel.playNext() },
             onStepFrame = { forward -> EnhancedPlayerManager.getInstance().stepFrame(forward) },
-            onBack = { playerSheetState.collapse() },
+            onBack = {
+                if (pipPreferences.autoPipEnabled) {
+                    playerSheetState.collapse()
+                } else {
+                    GlobalPlayerState.requestDismiss()
+                }
+            },
             onSettingsClick = { screenState.open(PlayerSheet.Settings()) },
             onQualityClick = { screenState.open(PlayerSheet.Settings(PlayerSettingsPage.Quality)) },
             onSpeedClick = { screenState.open(PlayerSheet.Settings(PlayerSettingsPage.Speed)) },
