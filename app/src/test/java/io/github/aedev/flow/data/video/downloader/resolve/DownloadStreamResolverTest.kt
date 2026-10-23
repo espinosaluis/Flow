@@ -21,6 +21,8 @@ class DownloadStreamResolverTest {
         videoCodec: String? = null,
         videoItag: Int? = null,
         audioItag: Int? = null,
+        audioTrackId: String? = null,
+        audioLanguage: String? = null,
     ) = DownloadRequest(
         tags = DownloadTags(kind = kind, videoId = "v", title = "t"),
         audioOnly = audioOnly,
@@ -28,6 +30,8 @@ class DownloadStreamResolverTest {
         videoCodec = videoCodec,
         videoItag = videoItag,
         audioItag = audioItag,
+        audioTrackId = audioTrackId,
+        audioLanguage = audioLanguage,
     )
 
     private fun result(
@@ -83,6 +87,27 @@ class DownloadStreamResolverTest {
         val picked = streams(select(request(videoItag = 399, audioItag = 140)))
 
         assertThat(picked.video?.itag).isEqualTo(399)
+    }
+
+    @Test
+    fun `a shared audio itag keeps the dialog's Spanish track`() {
+        val english = AAC.copy(audioTrack = Format.AudioTrack("English", "en.4"))
+        val spanish = AAC.copy(audioTrack = Format.AudioTrack("Spanish", "es.3"))
+        val picked =
+            streams(select(request(audioItag = 140, audioTrackId = "es.3", audioLanguage = "es"), audio = listOf(english, spanish)))
+
+        assertThat(picked.audio.audioTrack?.id).isEqualTo("es.3")
+    }
+
+    @Test
+    fun `a missing Spanish AAC track does not download English audio`() {
+        val english = AAC.copy(audioTrack = Format.AudioTrack("English", "en.4"))
+        val spanishOpus = OPUS.copy(audioTrack = Format.AudioTrack("Spanish", "es.3"))
+
+        assertThat(
+            select(request(audioItag = 140, audioTrackId = "es.3", audioLanguage = "es"), audio = listOf(english, spanishOpus)),
+        )
+            .isEqualTo(ResolveOutcome.NoCompatibleAudio)
     }
 
     @Test

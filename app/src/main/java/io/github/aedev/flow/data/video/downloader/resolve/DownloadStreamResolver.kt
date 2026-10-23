@@ -106,12 +106,21 @@ class DownloadStreamResolver
 
                 val audio =
                     request.audioItag
-                        ?.let { itag -> audioFormats.firstOrNull { it.itag == itag } }
-                        ?.takeIf { DownloadStreamPolicy.isAacFormat(it) }
+                        ?.let { itag ->
+                            audioFormats.firstOrNull {
+                                it.itag == itag &&
+                                    (request.audioTrackId == null || it.audioTrack?.id == request.audioTrackId) &&
+                                    (request.audioLanguage == null || it.audioLanguageTag.equals(request.audioLanguage, ignoreCase = true))
+                            }
+                        }?.takeIf { DownloadStreamPolicy.isAacFormat(it) }
                         ?: request.audioTrackId?.let { id ->
                             DownloadStreamPolicy.pickAacAudio(audioFormats.filter { it.audioTrack?.id == id }, language, quality)
                         }
-                        ?: DownloadStreamPolicy.pickAacAudio(audioFormats, language, quality)
+                        ?: if (request.audioTrackId == null || request.audioLanguage != null) {
+                            DownloadStreamPolicy.pickAacAudio(audioFormats, language, quality)
+                        } else {
+                            null
+                        }
                         ?: return if (result.audioFormats.any { !it.url.isNullOrBlank() }) {
                             ResolveOutcome.NoCompatibleAudio
                         } else {

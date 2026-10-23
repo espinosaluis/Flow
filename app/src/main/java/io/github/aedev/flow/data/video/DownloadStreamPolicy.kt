@@ -113,9 +113,9 @@ object DownloadStreamPolicy {
 
     /**
      * The AAC audio of a download, which is always an MP4 or M4A: the chosen language's AAC when it
-     * has one, otherwise any AAC, otherwise none. Opus is never taken, because Opus in MP4 loses its
-     * first 300 ms in Media3 (androidx/media#3431). The best one wins, unless [quality] asks for
-     * Medium (nearest 128 kbps) or Low (the smallest).
+     * has one. Do not replace a known language with another one. Opus is never taken, because Opus
+     * in MP4 loses its first 300 ms in Media3 (androidx/media#3431). The best one wins, unless
+     * [quality] asks for Medium (nearest 128 kbps) or Low (the smallest).
      */
     fun pickAacAudio(
         allAudio: List<Format>,
@@ -134,7 +134,11 @@ object DownloadStreamPolicy {
             } else {
                 aac.filter { it.isOriginal }
             }
-        val candidates = inLanguage.ifEmpty { aac }
+        val candidates =
+            inLanguage.ifEmpty {
+                aac.takeIf { allAudio.none { format -> audioLocale(format) != null || format.audioTrack != null } }.orEmpty()
+            }
+        if (candidates.isEmpty()) return null
         return when (quality) {
             MusicAudioQuality.MEDIUM -> candidates.minByOrNull { abs(audioBitrate(it) - MEDIUM_BITRATE) }
             MusicAudioQuality.LOW -> candidates.minByOrNull(::audioBitrate)

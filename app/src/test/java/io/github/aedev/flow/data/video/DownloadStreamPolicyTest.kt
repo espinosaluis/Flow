@@ -230,22 +230,20 @@ class DownloadStreamPolicyTest {
 
     @Test
     fun `a regional preference matches only a regional track`() {
-        // "fr-FR" is compared against the track's language ("fr") and its full tag, so a bare "fr"
-        // track does not match it and the pick falls through to every track.
         val en = audio(140, bitrate = 256_000, trackId = "en.4")
         val fr = audio(140, bitrate = 128_000, trackId = "fr.3", isAutoDubbed = true)
         val frFr = audio(140, bitrate = 64_000, trackId = "fr-FR.3", isAutoDubbed = true)
 
-        assertThat(pick(listOf(en, fr), preferredLang = "fr-FR")).isSameInstanceAs(en)
+        assertThat(pick(listOf(en, fr), preferredLang = "fr-FR")).isNull()
         assertThat(pick(listOf(en, fr, frFr), preferredLang = "fr-FR")).isSameInstanceAs(frFr)
     }
 
     @Test
-    fun `a preferred language with no match ignores the original flag`() {
+    fun `a preferred language with no match has no compatible download`() {
         val en = audio(140, bitrate = 128_000, trackId = "en.4")
         val frLoud = audio(141, bitrate = 256_000, trackId = "fr.3", isAutoDubbed = true)
 
-        assertThat(pick(listOf(en, frLoud), preferredLang = "de")).isSameInstanceAs(frLoud)
+        assertThat(pick(listOf(en, frLoud), preferredLang = "de")).isNull()
     }
 
     @Test
@@ -256,15 +254,15 @@ class DownloadStreamPolicyTest {
         listOf(null, "", "original").forEach { preference ->
             assertThat(pick(listOf(dubbed, original), preference)).isSameInstanceAs(original)
         }
-        assertThat(pick(listOf(dubbed))).isSameInstanceAs(dubbed)
+        assertThat(pick(listOf(dubbed))).isNull()
     }
 
     @Test
-    fun `a language with only opus crosses to another language's aac`() {
+    fun `a language with only opus does not cross to another language's aac`() {
         val frOpus = audio(251, mimeType = OPUS, bitrate = 160_000, trackId = "fr.3", isAutoDubbed = true)
         val enAac = audio(140, bitrate = 128_000, trackId = "en.4")
 
-        assertThat(pick(listOf(frOpus, enAac), preferredLang = "fr")).isSameInstanceAs(enAac)
+        assertThat(pick(listOf(frOpus, enAac), preferredLang = "fr")).isNull()
     }
 
     @Test
