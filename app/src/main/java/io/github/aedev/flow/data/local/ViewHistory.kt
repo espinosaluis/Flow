@@ -76,8 +76,8 @@ class ViewHistory private constructor(
     // ── Writes ───────────────────────────────────────────────────────────────
 
     /**
-     * Save / update playback position (called during real playback).
-     * REPLACE strategy so progress is always current.
+     * Save / update playback position. An explicit watched mark is a user action, so it still
+     * saves when automatic watch history is paused. REPLACE strategy keeps progress current.
      */
     suspend fun savePlaybackPosition(
         videoId: String,
@@ -92,8 +92,9 @@ class ViewHistory private constructor(
         // A device file's row stays local whichever caller writes it, or it would join the online
         // history, the engine's signals and sync under an id that names no YouTube video.
         isLocal: Boolean = LocalMediaIds.isLocal(videoId),
+        explicitlyMarkedWatched: Boolean = false,
     ) {
-        if (PlayerPreferences(context).isWatchHistorySavingBlocked()) return
+        if (!explicitlyMarkedWatched && PlayerPreferences(context).isWatchHistorySavingBlocked()) return
 
         val thumbnail = if (isLocal) thumbnailUrl else ThumbnailUrlResolver.normalizeVideoThumbnail(videoId, thumbnailUrl)
         dao.upsert(

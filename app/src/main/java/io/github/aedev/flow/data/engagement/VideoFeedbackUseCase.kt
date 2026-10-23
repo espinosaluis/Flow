@@ -105,6 +105,7 @@ class VideoFeedbackUseCase
                 channelId = video.channelId,
                 isMusic = false,
                 isShort = video.isShort,
+                explicitlyMarkedWatched = true,
             )
             FeedInvalidationBus.emit(FeedInvalidationBus.Event.MarkedWatched(video.id))
             watchLaterCleanup.onFinished(video.id)

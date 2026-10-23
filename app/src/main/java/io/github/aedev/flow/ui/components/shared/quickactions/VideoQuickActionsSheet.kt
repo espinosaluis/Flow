@@ -124,6 +124,7 @@ fun VideoQuickActionsBottomSheet(
                     )
                 }
                 VideoPrimaryActions(video, viewModel, onSave = { sheet.hideThen { page = VideoMenuPage.Save } }, onDismiss = close)
+                QuickActionsGroup(title = stringResource(R.string.section_algorithm), rows = feedRows(video, viewModel, close))
                 if (!video.isShort) {
                     QuickActionsGroup(
                         title = stringResource(R.string.playback_header),
@@ -141,7 +142,6 @@ fun VideoQuickActionsBottomSheet(
                             ),
                     )
                 }
-                QuickActionsGroup(title = stringResource(R.string.section_algorithm), rows = feedRows(video, viewModel, close))
                 val removeRow =
                     if (onRemoveFromCollection != null && removeFromCollectionLabel != null) {
                         actionRow("remove", removeFromCollectionIcon, removeFromCollectionLabel, destructive = true) {
