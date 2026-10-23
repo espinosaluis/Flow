@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.map
 data class VideoCardPreferences(
     val deArrowEnabled: Boolean = false,
     val deArrowBadgeEnabled: Boolean = false,
-    val actionsEnabled: Boolean = false,
     val markWatchedEnabled: Boolean = false,
     val upcomingReminderIds: Set<String> = emptySet(),
     val showWatchProgress: Boolean = true,
@@ -99,15 +98,13 @@ internal const val WATCHED_PROGRESS_THRESHOLD = 0.90f
  */
 internal fun isWatchedProgress(watchProgress: Float?): Boolean = (watchProgress ?: 0f) >= WATCHED_PROGRESS_THRESHOLD
 
-/** The feedback a card sends without opening its sheet. */
+/** The watched action a card sends without opening its sheet. */
 @Stable
 class VideoCardActions(
-    val onInterested: (Video) -> Unit,
-    val onNotInterested: (Video) -> Unit,
     val onWatched: (Video) -> Unit,
 ) {
     internal companion object {
-        val None = VideoCardActions({}, {}, {})
+        val None = VideoCardActions({})
     }
 }
 
@@ -129,8 +126,6 @@ fun ProvideVideoCardState(
     val actions =
         remember(quickActions) {
             VideoCardActions(
-                onInterested = quickActions::markAsInteresting,
-                onNotInterested = quickActions::markNotInterested,
                 onWatched = quickActions::markAsWatched,
             )
         }
@@ -141,11 +136,10 @@ fun ProvideVideoCardState(
             combine(
                 playerPreferences.deArrowEnabled,
                 playerPreferences.deArrowBadgeEnabled,
-                playerPreferences.videoCardActionsEnabled,
                 playerPreferences.videoCardMarkWatchedEnabled,
                 playerPreferences.upcomingVideoReminderIds,
-            ) { deArrow, deArrowBadge, actions, markWatched, reminders ->
-                VideoCardPreferences(deArrow, deArrowBadge, actions, markWatched, reminders)
+            ) { deArrow, deArrowBadge, markWatched, reminders ->
+                VideoCardPreferences(deArrow, deArrowBadge, markWatched, reminders)
             }.combine(playerPreferences.showWatchProgress) { cardPreferences, showWatchProgress ->
                 cardPreferences.copy(showWatchProgress = showWatchProgress)
             }.combine(playerPreferences.originalTitles) { cardPreferences, originalTitles ->

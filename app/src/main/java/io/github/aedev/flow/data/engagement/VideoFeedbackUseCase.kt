@@ -22,8 +22,8 @@ data class BlockedChannel(
 )
 
 /**
- * What a video's menu tells the recommendation engine and the library: Watch later, not interested,
- * more like this, watched, and hiding a channel. Each call does the writes and the learning signal
+ * Video actions for the recommendation engine and library: Watch later, not interested,
+ * watched, and hiding a channel. Each call does the writes and the learning signal
  * that belong together, and says nothing to the viewer; the caller decides how to confirm it.
  */
 class VideoFeedbackUseCase
@@ -85,10 +85,6 @@ class VideoFeedbackUseCase
             FlowNeuroEngine.markNotInterested(context, video)
             videoStats.onAction(LedgerAction.NOT_INTERESTED)
             FeedInvalidationBus.emit(FeedInvalidationBus.Event.NotInterested(video.id, video.channelId))
-        }
-
-        suspend fun markInterested(video: Video) {
-            FlowNeuroEngine.onVideoInteraction(context, video, InteractionType.LIKED, percentWatched = 0f)
         }
 
         /** Records [video] as watched to the end, so every card shows it full and the engine learns from it. */

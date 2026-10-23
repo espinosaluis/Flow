@@ -114,15 +114,12 @@ internal fun VideoCardStacked(
             }
         }
 
-        if (!LocalDpadNavigation.current && (cardPreferences.actionsEnabled || cardPreferences.markWatchedEnabled)) {
+        if (!LocalDpadNavigation.current && cardPreferences.markWatchedEnabled) {
             VideoCardFeedback(
                 state = state,
-                showRating = cardPreferences.actionsEnabled,
-                showWatched = cardPreferences.markWatchedEnabled,
                 actions = actions,
                 modifier =
                     Modifier
-                        .fillMaxWidth()
                         .padding(horizontal = VideoCardDefaults.Inset)
                         .padding(bottom = VideoCardDefaults.Inset),
             )

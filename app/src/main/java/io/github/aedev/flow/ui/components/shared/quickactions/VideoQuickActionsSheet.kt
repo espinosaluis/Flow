@@ -15,8 +15,6 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.PlaylistRemove
 import androidx.compose.material.icons.outlined.QueuePlayNext
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.ThumbDown
-import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.WatchLater
@@ -302,16 +300,6 @@ private fun feedRows(
     val haptics = LocalHapticFeedback.current
     val isWatched = isWatchedProgress(rememberWatchProgress(video.id))
     return listOf(
-        actionRow("interested", Icons.Outlined.ThumbUp, stringResource(R.string.i_like_this)) {
-            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-            viewModel.markAsInteresting(video)
-            onDismiss()
-        },
-        actionRow("not_interested", Icons.Outlined.ThumbDown, stringResource(R.string.not_interested)) {
-            haptics.performHapticFeedback(HapticFeedbackType.Reject)
-            viewModel.markNotInterested(video)
-            onDismiss()
-        },
         QuickActionRow("watched") { shape ->
             FlowNavRow(
                 title = stringResource(if (isWatched) R.string.mark_as_unwatched else R.string.mark_as_watched),

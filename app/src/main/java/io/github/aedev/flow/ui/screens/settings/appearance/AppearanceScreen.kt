@@ -61,7 +61,6 @@ internal fun AppearanceScreen(
     val separatePlaylists by viewModel.separatePlaylists.collectAsStateWithLifecycle()
     val appLogo by viewModel.appLogo.collectAsStateWithLifecycle()
     val groupBadges by viewModel.groupBadges.collectAsStateWithLifecycle()
-    val cardLikeButtons by viewModel.cardLikeButtons.collectAsStateWithLifecycle()
     val cardMarkWatched by viewModel.cardMarkWatched.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
@@ -151,7 +150,6 @@ internal fun AppearanceScreen(
             switch(AppearanceIndex.groupBadges, groupBadges, viewModel::setGroupBadges)
         }
         group(key = "appearance.cards", header = R.string.settings_section_video_cards) {
-            switch(AppearanceIndex.cardLikeButtons, cardLikeButtons, viewModel::setCardLikeButtons)
             switch(AppearanceIndex.cardWatchProgress, viewModel.cardWatchProgress, viewModel::setCardWatchProgress)
             switch(AppearanceIndex.cardMarkWatched, cardMarkWatched, viewModel::setCardMarkWatched)
         }

@@ -275,8 +275,6 @@
     <string name="mark_as_watched_toast">Marked as watched</string>
     <string name="mark_as_unwatched">Mark as unwatched</string>
     <string name="mark_as_unwatched_toast">Marked as unwatched</string>
-    <string name="i_like_this">I want more like this</string>
-    <string name="i_like_this_toast">Got it! You\'ll see more content like this.</string>
     <string name="go_to_channel">Go to channel</string>
     <!-- Media Info Dialog -->
     <string name="track_info">Track Information</string>
@@ -1141,8 +1139,6 @@
     <string name="content_settings_title_lines_2">2 lines</string>
     <string name="content_settings_title_lines_3">3 lines</string>
     <string name="content_settings_title_lines_unlimited">No limit</string>
-    <string name="content_settings_video_card_actions_title">Video card like &amp; dislike buttons</string>
-    <string name="content_settings_video_card_actions_subtitle">Like and dislike buttons on cards to tune your feed</string>
     <string name="content_settings_video_card_mark_watched_title">Video card mark as watched button</string>
     <string name="content_settings_video_card_mark_watched_subtitle">An eye button on cards to mark videos as watched</string>
     <string name="content_settings_video_card_progress_title">Show watch progress</string>

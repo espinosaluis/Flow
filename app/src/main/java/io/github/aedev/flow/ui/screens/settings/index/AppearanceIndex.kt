@@ -82,14 +82,6 @@ internal object AppearanceIndex {
             section = R.string.settings_section_layout,
             destination = page,
         )
-    val cardLikeButtons =
-        SettingEntry(
-            key = "appearance.card_like_buttons",
-            title = R.string.content_settings_video_card_actions_title,
-            summary = R.string.content_settings_video_card_actions_subtitle,
-            section = R.string.settings_section_video_cards,
-            destination = page,
-        )
     val cardWatchProgress =
         SettingEntry(
             key = "appearance.card_watch_progress",
@@ -118,7 +110,6 @@ internal object AppearanceIndex {
             separatePlaylists,
             appLogo,
             groupBadges,
-            cardLikeButtons,
             cardWatchProgress,
             cardMarkWatched,
         )

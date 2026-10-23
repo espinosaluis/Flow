@@ -51,7 +51,6 @@ class AppearanceViewModel
         val separatePlaylists = preferences.separatePlaylistKinds.asState(false)
         val appLogo = preferences.showAppLogoIcon.asState(true)
         val groupBadges = preferences.showChannelGroupBadges.asState(false)
-        val cardLikeButtons = preferences.videoCardActionsEnabled.asState(false)
         val cardMarkWatched = preferences.videoCardMarkWatchedEnabled.asState(false)
         val cardWatchProgress = preferences.showWatchProgress.asState(true)
 
@@ -98,8 +97,6 @@ class AppearanceViewModel
         fun setAppLogo(enabled: Boolean) = write { preferences.setShowAppLogoIcon(enabled) }
 
         fun setGroupBadges(enabled: Boolean) = write { preferences.setShowChannelGroupBadges(enabled) }
-
-        fun setCardLikeButtons(enabled: Boolean) = write { preferences.setVideoCardActionsEnabled(enabled) }
 
         fun setCardMarkWatched(enabled: Boolean) = write { preferences.setVideoCardMarkWatchedEnabled(enabled) }
 
