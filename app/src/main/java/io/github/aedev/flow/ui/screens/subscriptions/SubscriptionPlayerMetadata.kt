@@ -48,7 +48,6 @@ internal suspend fun fetchSubscriptionPlayerMetadata(
                 ?: ThumbnailUrlResolver.normalizeVideoThumbnail(video.id, video.thumbnailUrl)
 
         video.copy(
-            title = details.title?.takeIf { it.isNotBlank() } ?: video.title,
             channelName = details.author?.takeIf { it.isNotBlank() } ?: video.channelName,
             channelId = details.channelId.takeIf { it.isNotBlank() } ?: video.channelId,
             thumbnailUrl = bestThumbnail,
@@ -62,10 +61,9 @@ internal suspend fun fetchSubscriptionPlayerMetadata(
         )
     }
 
-/** Folds a player lookup into the feed row it was made for, keeping what the lookup left blank. */
+/** Folds in player metadata without replacing the feed title with the player's localized title. */
 internal fun Video.withPlayerMetadata(enriched: Video): Video =
     copy(
-        title = enriched.title.takeIf { it.isNotBlank() } ?: title,
         channelName = enriched.channelName.takeIf { it.isNotBlank() } ?: channelName,
         channelId = enriched.channelId.takeIf { it.isNotBlank() } ?: channelId,
         thumbnailUrl = enriched.thumbnailUrl.takeIf { it.isNotBlank() } ?: thumbnailUrl,

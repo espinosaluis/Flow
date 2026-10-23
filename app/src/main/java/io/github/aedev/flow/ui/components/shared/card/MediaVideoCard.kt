@@ -47,6 +47,8 @@ fun MediaVideoCard(
     thumbnailWidth: Dp = VideoCardDefaults.RowThumbnailWidth,
     reason: String? = null,
     whyShown: String? = null,
+    showInlineActions: Boolean = false,
+    inlineMenu: Boolean = false,
 ) {
     when (layout) {
         VideoCardLayout.Stacked -> {
@@ -57,6 +59,8 @@ fun MediaVideoCard(
                 useInternalPadding = useInternalPadding,
                 reason = reason,
                 whyShown = whyShown,
+                showInlineActions = showInlineActions,
+                inlineMenu = inlineMenu,
                 modifier = modifier,
             )
         }

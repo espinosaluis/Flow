@@ -44,6 +44,7 @@ import io.github.aedev.flow.ui.components.shared.FlowFilterChip
 import io.github.aedev.flow.ui.components.shared.FlowPullToRefreshBox
 import io.github.aedev.flow.ui.components.shared.MediaShortsShelf
 import io.github.aedev.flow.ui.components.shared.card.MediaVideoCard
+import io.github.aedev.flow.ui.components.shared.card.VideoCardDefaults
 import io.github.aedev.flow.ui.components.shared.card.VideoCardLayout
 import io.github.aedev.flow.ui.components.shared.dpadFocusGroup
 import io.github.aedev.flow.ui.components.shared.rememberFeedGridPlan
@@ -58,6 +59,7 @@ private val HeaderBottomPadding = 12.dp
 private val ShelfSpacing = 8.dp
 private val ErrorCardPadding = 4.dp
 private val FeedTopPadding = 4.dp
+private val InlineActionsMinCardWidth = 144.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -215,12 +217,16 @@ internal fun SubscriptionsFeedContent(
                     contentType = { _, _ -> "video" },
                     span = { index, _ -> plan.span(index, spansOwnRow = false, maxLineSpan = maxLineSpan) },
                 ) { index, video ->
+                    val isListCard = plan.isListCard(index)
                     MediaVideoCard(
                         video = video,
-                        layout = if (plan.isListCard(index)) VideoCardLayout.Row else VideoCardLayout.Stacked,
+                        layout = if (listMode || !isListCard) VideoCardLayout.Stacked else VideoCardLayout.Row,
                         onClick = { onVideoClick(video) },
-                        useInternalPadding = !feedLayout.cardsBleed,
+                        modifier = if (listMode) Modifier.padding(bottom = VideoCardDefaults.Inset) else Modifier,
+                        useInternalPadding = if (listMode) true else !feedLayout.cardsBleed,
                         thumbnailWidth = plan.listThumbnailWidth,
+                        showInlineActions = listMode || (!isListCard && feedLayout.cardWidth >= InlineActionsMinCardWidth),
+                        inlineMenu = listMode,
                     )
                 }
             }

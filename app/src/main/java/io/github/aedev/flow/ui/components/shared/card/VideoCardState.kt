@@ -102,9 +102,11 @@ internal fun isWatchedProgress(watchProgress: Float?): Boolean = (watchProgress 
 @Stable
 class VideoCardActions(
     val onWatched: (Video) -> Unit,
+    val onUnwatched: (Video) -> Unit,
+    val onDownload: (Video) -> Unit,
 ) {
     internal companion object {
-        val None = VideoCardActions({})
+        val None = VideoCardActions({}, {}, {})
     }
 }
 
@@ -127,6 +129,8 @@ fun ProvideVideoCardState(
         remember(quickActions) {
             VideoCardActions(
                 onWatched = quickActions::markAsWatched,
+                onUnwatched = quickActions::markAsUnwatched,
+                onDownload = quickActions::requestDownload,
             )
         }
 

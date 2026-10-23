@@ -30,6 +30,8 @@ internal fun VideoCardStacked(
     useInternalPadding: Boolean,
     reason: String?,
     whyShown: String?,
+    showInlineActions: Boolean,
+    inlineMenu: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val state = rememberVideoCardState(video)
@@ -50,6 +52,21 @@ internal fun VideoCardStacked(
             modifier = Modifier.fillMaxWidth(),
         )
 
+        if (showInlineActions) {
+            Text(
+                text = state.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = VideoCardDefaults.Inset)
+                        .padding(top = VideoCardDefaults.Inset),
+            )
+        }
+
         // The avatar's 48 dp target overhangs its 40 dp image by 4 dp, so the row gives those 4 dp back
         // and the avatar still lines up where it always has.
         CardDetailsRow(
@@ -57,7 +74,11 @@ internal fun VideoCardStacked(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(start = if (showChannel) 8.dp else 12.dp, top = 12.dp, bottom = 12.dp),
+                    .padding(
+                        start = if (showChannel) 8.dp else 12.dp,
+                        top = if (showInlineActions) 4.dp else 12.dp,
+                        bottom = if (showInlineActions) 0.dp else 12.dp,
+                    ),
             avatar = {
                 if (showChannel) {
                     ChannelAvatarStack(
@@ -73,22 +94,26 @@ internal fun VideoCardStacked(
                 }
             },
             actions = {
-                VideoCardSideActions(
-                    state = state,
-                    showWatched = false,
-                    onWatched = actions.onWatched,
-                    alignTo = 12.dp,
-                )
+                if (!showInlineActions || !inlineMenu) {
+                    VideoCardSideActions(
+                        state = state,
+                        showWatched = false,
+                        onWatched = actions.onWatched,
+                        alignTo = 12.dp,
+                    )
+                }
             },
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = state.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (!showInlineActions) {
+                    Text(
+                        text = state.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
 
                 Text(
                     text =
@@ -114,7 +139,14 @@ internal fun VideoCardStacked(
             }
         }
 
-        if (!LocalDpadNavigation.current && cardPreferences.markWatchedEnabled) {
+        if (showInlineActions) {
+            VideoCardInlineActions(
+                state = state,
+                actions = actions,
+                showMenu = inlineMenu,
+                modifier = Modifier.padding(end = if (inlineMenu) 8.dp else 0.dp, bottom = 8.dp),
+            )
+        } else if (!LocalDpadNavigation.current && cardPreferences.markWatchedEnabled) {
             VideoCardFeedback(
                 state = state,
                 actions = actions,
