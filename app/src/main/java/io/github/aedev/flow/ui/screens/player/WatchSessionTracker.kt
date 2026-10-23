@@ -187,19 +187,17 @@ internal class WatchSessionTracker(
         isShort: Boolean,
         isLocal: Boolean,
     ) {
-        scope.launch {
-            viewHistory.savePlaybackPosition(
-                videoId = videoId,
-                position = positionMs,
-                duration = durationMs,
-                title = title,
-                thumbnailUrl = thumbnailUrl,
-                channelName = channelName,
-                channelId = channelId,
-                isShort = isShort,
-                isLocal = isLocal,
-            )
-        }
+        viewHistory.enqueuePlaybackPosition(
+            videoId = videoId,
+            position = positionMs,
+            duration = durationMs,
+            title = title,
+            thumbnailUrl = thumbnailUrl,
+            channelName = channelName,
+            channelId = channelId,
+            isShort = isShort,
+            isLocal = isLocal,
+        )
         if (!isLocal && durationMs > 0) {
             track(videoId, positionMs, durationMs, title, thumbnailUrl, channelName, channelId, isShort)
         }

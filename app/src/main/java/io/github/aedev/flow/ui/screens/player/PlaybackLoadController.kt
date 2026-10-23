@@ -240,7 +240,7 @@ internal class PlaybackLoadController(
                 load = LoadContext(video.id, loadToken),
                 localFilePath = contentUri,
                 offlineSegments = null,
-                savedPosition = startPositionMs ?: runCatching { viewHistory.getSavedPosition(video.id) }.getOrDefault(0L),
+                savedPosition = startPositionMs ?: runCatching { viewHistory.getSavedVideoPosition(video.id) }.getOrDefault(0L),
             )
         }
         scope.launch {

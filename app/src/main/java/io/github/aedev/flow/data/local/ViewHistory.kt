@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -30,6 +31,7 @@ import kotlinx.coroutines.yield
  * After migration it is left empty (cleared).
  */
 private val Context.viewHistoryDataStore: DataStore<Preferences> by safePreferencesDataStore(name = "view_history")
+private val Context.videoResumeDataStore: DataStore<Preferences> by safePreferencesDataStore(name = "video_resume")
 
 /**
  * Watch-history repository backed by Room SQLite.
@@ -71,6 +73,10 @@ class ViewHistory private constructor(
         private fun channelIdKey(id: String) = stringPreferencesKey("video_${id}_channel_id")
 
         private fun isMusicKey(id: String) = booleanPreferencesKey("video_${id}_is_music")
+
+        private fun resumePositionKey(id: String) = longPreferencesKey("resume_${id}_position")
+
+        private fun resumeShortKey(id: String) = booleanPreferencesKey("resume_${id}_is_short")
     }
 
     // ── Writes ───────────────────────────────────────────────────────────────
@@ -94,6 +100,12 @@ class ViewHistory private constructor(
         isLocal: Boolean = LocalMediaIds.isLocal(videoId),
         explicitlyMarkedWatched: Boolean = false,
     ) {
+        if (!isMusic) {
+            context.videoResumeDataStore.edit { preferences ->
+                preferences[resumePositionKey(videoId)] = position
+                preferences[resumeShortKey(videoId)] = isShort
+            }
+        }
         if (!explicitlyMarkedWatched && PlayerPreferences(context).isWatchHistorySavingBlocked()) return
 
         val thumbnail = if (isLocal) thumbnailUrl else ThumbnailUrlResolver.normalizeVideoThumbnail(videoId, thumbnailUrl)
@@ -114,6 +126,32 @@ class ViewHistory private constructor(
         )
     }
 
+    fun enqueuePlaybackPosition(
+        videoId: String,
+        position: Long,
+        duration: Long,
+        title: String,
+        thumbnailUrl: String,
+        channelName: String,
+        channelId: String,
+        isShort: Boolean,
+        isLocal: Boolean,
+    ) {
+        scope.launch {
+            savePlaybackPosition(
+                videoId = videoId,
+                position = position,
+                duration = duration,
+                title = title,
+                thumbnailUrl = thumbnailUrl,
+                channelName = channelName,
+                channelId = channelId,
+                isShort = isShort,
+                isLocal = isLocal,
+            )
+        }
+    }
+
     /**
      * Records that [videoId] played to its end. Its card then shows a full bar until the next
      * playback of it starts over from the beginning and saves new progress.
@@ -123,16 +161,24 @@ class ViewHistory private constructor(
         durationMs: Long,
     ) {
         if (durationMs <= 0L) return
+        context.videoResumeDataStore.edit { it[resumePositionKey(videoId)] = durationMs }
         if (PlayerPreferences(context).isWatchHistorySavingBlocked()) return
         dao.markCompleted(videoId, durationMs)
     }
 
     /** Clears playback progress for [videoId]. The history row stays; the card stops reading as watched. */
     suspend fun clearProgress(videoId: String) {
+        context.videoResumeDataStore.edit { preferences ->
+            preferences.remove(resumePositionKey(videoId))
+            preferences.remove(resumeShortKey(videoId))
+        }
         dao.clearProgress(videoId)
     }
 
     suspend fun getSavedPosition(videoId: String): Long = dao.getPosition(videoId) ?: 0L
+
+    suspend fun getSavedVideoPosition(videoId: String): Long =
+        context.videoResumeDataStore.data.first()[resumePositionKey(videoId)] ?: dao.getPosition(videoId) ?: 0L
 
     suspend fun getSavedDuration(videoId: String): Long = dao.getDuration(videoId) ?: 0L
 
@@ -238,6 +284,10 @@ class ViewHistory private constructor(
     }
 
     suspend fun clearVideoHistory(videoId: String) {
+        context.videoResumeDataStore.edit { preferences ->
+            preferences.remove(resumePositionKey(videoId))
+            preferences.remove(resumeShortKey(videoId))
+        }
         dao.deleteEntry(videoId)
     }
 
@@ -250,16 +300,30 @@ class ViewHistory private constructor(
     }
 
     suspend fun clearAllHistory() {
+        context.videoResumeDataStore.edit { it.clear() }
         dao.clearAll()
     }
 
     suspend fun clearShortsHistory() {
+        context.videoResumeDataStore.edit { preferences ->
+            val shortIds =
+                preferences.asMap().filter { (key, value) ->
+                    key.name.startsWith("resume_") && key.name.endsWith("_is_short") && value == true
+                }.keys.map { it.name.removePrefix("resume_").removeSuffix("_is_short") }
+            shortIds.forEach { videoId ->
+                preferences.remove(resumePositionKey(videoId))
+                preferences.remove(resumeShortKey(videoId))
+            }
+        }
         dao.clearShorts()
     }
 
     // ── Reads ────────────────────────────────────────────────────────────────
 
-    fun getPlaybackPosition(videoId: String): Flow<Long> = dao.getEntry(videoId).map { it?.position ?: 0L }
+    fun getPlaybackPosition(videoId: String): Flow<Long> =
+        combine(context.videoResumeDataStore.data, dao.getEntry(videoId)) { preferences, history ->
+            preferences[resumePositionKey(videoId)] ?: history?.position ?: 0L
+        }
 
     fun getVideoHistory(videoId: String): Flow<VideoHistoryEntry?> = dao.getEntry(videoId).map { it?.toDomain() }
 

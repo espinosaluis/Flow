@@ -17,6 +17,27 @@ import org.robolectric.annotation.ConscryptMode
 @ConscryptMode(ConscryptMode.Mode.OFF)
 class ViewHistoryExplicitMarkTest {
     @Test
+    fun `video resumes while watch history is paused`() =
+        runBlocking {
+            val context = ApplicationProvider.getApplicationContext<Application>()
+            val preferences = PlayerPreferences(context)
+            val history = ViewHistory.getInstance(context)
+            val videoId = "paused-resume-${System.nanoTime()}"
+            preferences.setWatchHistoryPaused(true)
+
+            try {
+                history.savePlaybackPosition(videoId, 42_000L, 120_000L, title = "Test video")
+
+                assertThat(history.getVideoHistory(videoId).first()).isNull()
+                assertThat(history.getPlaybackPosition(videoId).first()).isEqualTo(42_000L)
+                assertThat(history.getSavedVideoPosition(videoId)).isEqualTo(42_000L)
+            } finally {
+                history.clearVideoHistory(videoId)
+                preferences.setWatchHistoryPaused(false)
+            }
+        }
+
+    @Test
     fun `manual mark hides a subscription video while playback history is paused`() =
         runBlocking {
             val context = ApplicationProvider.getApplicationContext<Application>()
