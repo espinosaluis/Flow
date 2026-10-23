@@ -60,7 +60,8 @@ sealed interface FetchOutcome {
  * Gets a request's streams into staging. A refused URL is read the way playback reads it: an
  * expired one is simply re-minted and the transfer continues where it stopped; an unattested or
  * token-refused client is reported to [ClientGateTracker] so the next extraction skips it. A stream
- * refused twice is dropped for another one, and SABR is tried only once direct URLs are exhausted.
+ * refused twice is dropped for another one. Automatic video downloads also try SABR when no direct
+ * streams can be resolved.
  */
 @Singleton
 class DownloadTransfer
@@ -79,12 +80,30 @@ class DownloadTransfer
         ): FetchOutcome {
             var avoid = emptySet<Int>()
             val refusals = mutableMapOf<Int, Int>()
+            val allowSabrWithoutDirectStreams =
+                request.targetHeight == 0 && !request.wantsAudioOnly && request.videoItag == null && request.audioItag == null
             repeat(MAX_RESOLVES) {
                 val streams =
                     when (val resolved = resolver.resolve(request, avoid)) {
-                        is ResolveOutcome.Resolved -> resolved.streams
-                        ResolveOutcome.Unavailable -> return FetchOutcome.Failed(FetchFailure.UNAVAILABLE)
-                        ResolveOutcome.NoCompatibleAudio -> return FetchOutcome.Failed(FetchFailure.NO_COMPATIBLE_AUDIO)
+                        is ResolveOutcome.Resolved -> {
+                            resolved.streams
+                        }
+
+                        ResolveOutcome.Unavailable -> {
+                            return if (allowSabrWithoutDirectStreams) {
+                                viaSabr(request, staging, itemId)
+                            } else {
+                                FetchOutcome.Failed(FetchFailure.UNAVAILABLE)
+                            }
+                        }
+
+                        ResolveOutcome.NoCompatibleAudio -> {
+                            return if (allowSabrWithoutDirectStreams) {
+                                viaSabr(request, staging, itemId)
+                            } else {
+                                FetchOutcome.Failed(FetchFailure.NO_COMPATIBLE_AUDIO)
+                            }
+                        }
                     }
                 val video = streams.video
                 val parts =
@@ -159,9 +178,9 @@ class DownloadTransfer
         }
 
         /**
-         * The last resort once every direct URL was refused. What it writes still has to pass the
-         * runner's remux and playability checks, so a session that never sends an init segment ends
-         * as a failure rather than a finished file that cannot play.
+         * The last resort when direct streams are unavailable or refused. What it writes still has
+         * to pass the runner's remux and playability checks. A session that never sends an init
+         * segment ends as a failure rather than a finished file that cannot play.
          */
         private suspend fun viaSabr(
             request: DownloadRequest,

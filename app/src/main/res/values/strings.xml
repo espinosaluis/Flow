@@ -2435,6 +2435,7 @@
     <string name="download_video">Download Video</string>
     <string name="select_quality">Select your preferred quality</string>
     <string name="no_download_streams">No download streams available</string>
+    <string name="download_auto_quality_hint">No quality options available. Download will retry with automatic selection.</string>
     <!-- Compact download dialog -->
     <string name="download_audio">Audio</string>
     <string name="download_title_label">Title</string>

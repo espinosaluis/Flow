@@ -76,11 +76,9 @@ internal fun VideoInfoContent(
         )
     }
 
-    val downloadedVideoIds by viewModel.downloadedVideoIds.collectAsStateWithLifecycle()
     val videoNote by viewModel.videoNote.collectAsStateWithLifecycle()
     val videoNotesEnabled by viewModel.videoNotesEnabled.collectAsStateWithLifecycle()
     var showNoteEditor by rememberSaveable(video.id) { mutableStateOf(false) }
-    val isVideoDownloaded = remember(downloadedVideoIds, video.id) { downloadedVideoIds.contains(video.id) }
     val isVideoSaved by remember(video.id) { viewModel.isVideoSavedToAnyPlaylist(video.id) }
         .collectAsStateWithLifecycle(initialValue = false)
 
@@ -186,7 +184,6 @@ internal fun VideoInfoContent(
         isDeviceFile = LocalMediaIds.isLocal(video.id),
         onDownloadClick = { screenState.open(PlayerSheet.Download) },
         isSaved = isVideoSaved,
-        isDownloaded = isVideoDownloaded,
         onNoteClick = { showNoteEditor = true }.takeIf { videoNotesEnabled },
         hasNote = !videoNote.isNullOrBlank(),
         onBackgroundPlayClick = { viewModel.startBackgroundPlayback() },

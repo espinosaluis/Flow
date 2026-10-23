@@ -8,13 +8,11 @@ import io.github.aedev.flow.data.engagement.LikedMediaUseCase
 import io.github.aedev.flow.data.engagement.VideoEngagementUseCase
 import io.github.aedev.flow.data.engagement.VideoFeedbackUseCase
 import io.github.aedev.flow.data.local.PlaylistRepository
-import io.github.aedev.flow.data.local.entity.DownloadItemStatus
 import io.github.aedev.flow.data.model.Video
 import io.github.aedev.flow.data.music.model.MusicTrack
 import io.github.aedev.flow.data.music.video.MusicVideoVersions
 import io.github.aedev.flow.data.repository.YouTubeRepository
 import io.github.aedev.flow.data.video.AutoDownloadTrigger
-import io.github.aedev.flow.data.video.VideoDownloadManager
 import io.github.aedev.flow.data.video.VideoDownloadOptions
 import io.github.aedev.flow.data.video.VideoDownloadOptionsLoader
 import io.github.aedev.flow.player.EnhancedMusicPlayerManager
@@ -33,7 +31,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -55,7 +52,6 @@ class QuickActionsViewModel
     constructor(
         private val repository: YouTubeRepository,
         private val playlistRepository: PlaylistRepository,
-        videoDownloadManager: VideoDownloadManager,
         private val engagement: VideoEngagementUseCase,
         private val feedback: VideoFeedbackUseCase,
         private val downloadOptions: VideoDownloadOptionsLoader,
@@ -71,15 +67,6 @@ class QuickActionsViewModel
 
         private val _subscribedChannelIds = MutableStateFlow<Set<String>>(emptySet())
         val subscribedChannelIds: StateFlow<Set<String>> = _subscribedChannelIds.asStateFlow()
-
-        val downloadedVideoIds: StateFlow<Set<String>> =
-            videoDownloadManager.allDownloads
-                .map { list ->
-                    list
-                        .filter { it.overallStatus == DownloadItemStatus.COMPLETED && it.items.isNotEmpty() }
-                        .map { it.download.videoId }
-                        .toSet()
-                }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MS), emptySet())
 
         private val _messages = MutableSharedFlow<QuickActionMessage>(extraBufferCapacity = 4)
         val messages: SharedFlow<QuickActionMessage> = _messages.asSharedFlow()

@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Headphones
 import androidx.compose.material.icons.outlined.Link
@@ -70,7 +69,6 @@ internal fun VideoActionRow(
     onCopyLinkClick: () -> Unit = {},
     onCopyLinkAtTimeClick: () -> Unit = {},
     isSaved: Boolean = false,
-    isDownloaded: Boolean = false,
     onNoteClick: (() -> Unit)? = null,
     hasNote: Boolean = false,
     isDeviceFile: Boolean = false,
@@ -103,11 +101,10 @@ internal fun VideoActionRow(
         }
 
         item {
-            ActionToggle(
-                icon = if (isDownloaded) Icons.Outlined.CheckCircle else Icons.Outlined.Download,
-                label = if (isDownloaded) stringResource(R.string.downloaded) else stringResource(R.string.download),
-                checked = isDownloaded,
-                onCheckedChange = onDownloadClick,
+            ActionButton(
+                icon = Icons.Outlined.Download,
+                label = stringResource(R.string.download),
+                onClick = onDownloadClick,
             )
         }
 

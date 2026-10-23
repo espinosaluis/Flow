@@ -39,7 +39,6 @@ class QuickActionsSubscriptionStateTest {
         QuickActionsViewModel(
             repository = mockk(relaxed = true),
             playlistRepository = mockk(relaxed = true),
-            videoDownloadManager = mockk(relaxed = true),
             engagement = engagement,
             feedback = mockk(relaxed = true),
             downloadOptions = mockk(relaxed = true),

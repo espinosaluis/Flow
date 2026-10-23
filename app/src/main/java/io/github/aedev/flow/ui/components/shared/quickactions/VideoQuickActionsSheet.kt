@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.os.Build
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.WatchLater
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -178,6 +177,14 @@ private fun VideoPrimaryActions(
                 onClick = { viewModel.toggleWatchLater(video) },
             ),
             QuickPrimaryAction(
+                icon = Icons.Outlined.Download,
+                label = stringResource(R.string.download),
+                onClick = {
+                    viewModel.requestDownload(video)
+                    onDismiss()
+                },
+            ),
+            QuickPrimaryAction(
                 icon = Icons.Outlined.Share,
                 label = stringResource(R.string.share),
                 onClick = {
@@ -334,26 +341,9 @@ private fun moreRows(
     onDismiss: () -> Unit,
     onOpenDetails: () -> Unit,
 ): List<QuickActionRow> {
-    val downloadedIds by viewModel.downloadedVideoIds.collectAsStateWithLifecycle()
-    val isDownloaded = video.id in downloadedIds
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val downloadedLabel = stringResource(R.string.downloaded)
     return listOf(
-        QuickActionRow("download") { shape ->
-            FlowNavRow(
-                title = if (isDownloaded) downloadedLabel else stringResource(R.string.download),
-                leadingIcon = if (isDownloaded) Icons.Filled.CheckCircle else Icons.Outlined.Download,
-                onClick = {
-                    viewModel.requestDownload(video)
-                    onDismiss()
-                },
-                enabled = !isDownloaded,
-                showChevron = false,
-                stateDescription = if (isDownloaded) downloadedLabel else null,
-                shape = shape,
-            )
-        },
         actionRow("copy_link", Icons.Outlined.ContentCopy, stringResource(R.string.copy_video_link)) {
             scope.launch {
                 clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(video.title, youtubeWatchUrl(video.id))))

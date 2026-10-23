@@ -75,7 +75,6 @@ class QuickActionsMessagesTest {
         QuickActionsViewModel(
             repository = mockk(relaxed = true),
             playlistRepository = playlistRepository,
-            videoDownloadManager = mockk(relaxed = true),
             engagement = engagement,
             feedback = feedback,
             downloadOptions = loader,

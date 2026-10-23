@@ -220,11 +220,6 @@ class VideoPlayerViewModel
             stopLiveChat()
         }
 
-        val downloadedVideoIds =
-            videoDownloadManager.downloadedVideos
-                .map { list -> list.map { it.video.id }.toSet() }
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
-
         fun isVideoSavedToAnyPlaylist(videoId: String): Flow<Boolean> = playlistRepository.isVideoSavedToAnyPlaylistFlow(videoId)
 
         /**

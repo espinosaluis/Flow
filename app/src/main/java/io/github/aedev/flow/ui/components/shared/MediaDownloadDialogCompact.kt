@@ -122,6 +122,7 @@ fun MediaDownloadDialogCompact(
 
     val hasVideo = videoStreams.isNotEmpty()
     val hasAudio = audioStreams.isNotEmpty()
+    val useAutomaticSelection = !hasVideo && !hasAudio
 
     var title by remember(video.id) { mutableStateOf(video.title) }
     var threads by remember(defaultThreads) { mutableStateOf(defaultThreads.coerceIn(MIN_THREADS, MAX_THREADS)) }
@@ -163,6 +164,11 @@ fun MediaDownloadDialogCompact(
     fun confirmDownload() {
         val finalTitle = title.trim().ifBlank { video.title }
         val taggedVideo = video.copy(title = finalTitle)
+        if (useAutomaticSelection) {
+            DownloadLauncher.startDefaultDownload(context, taggedVideo)
+            onDismiss()
+            return
+        }
         if (isAudioMode) {
             val stream = audioStreams.getOrNull(selectedAudioIndex) ?: return
             if (!DownloadLauncher.startAudioOnlyDownload(context, taggedVideo, stream, threads)) return
@@ -299,7 +305,7 @@ fun MediaDownloadDialogCompact(
                     )
                 } else {
                     Text(
-                        text = stringResource(R.string.no_download_streams),
+                        text = stringResource(R.string.download_auto_quality_hint),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -361,7 +367,8 @@ fun MediaDownloadDialogCompact(
                             confirmDownload()
                         },
                         shapes = ButtonDefaults.shapes(),
-                        enabled = (isAudioMode && hasAudio) || (!isAudioMode && hasVideo && selectedCodec.isNotEmpty()),
+                        enabled =
+                            useAutomaticSelection || (isAudioMode && hasAudio) || (!isAudioMode && hasVideo && selectedCodec.isNotEmpty()),
                     ) { Text(stringResource(R.string.download)) }
                 }
             }
