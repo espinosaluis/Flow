@@ -23,6 +23,7 @@ class DownloadStreamResolverTest {
         audioItag: Int? = null,
         audioTrackId: String? = null,
         audioLanguage: String? = null,
+        includeAllAudioTracks: Boolean = false,
     ) = DownloadRequest(
         tags = DownloadTags(kind = kind, videoId = "v", title = "t"),
         audioOnly = audioOnly,
@@ -32,6 +33,7 @@ class DownloadStreamResolverTest {
         audioItag = audioItag,
         audioTrackId = audioTrackId,
         audioLanguage = audioLanguage,
+        includeAllAudioTracks = includeAllAudioTracks,
     )
 
     private fun result(
@@ -106,8 +108,27 @@ class DownloadStreamResolverTest {
 
         assertThat(
             select(request(audioItag = 140, audioTrackId = "es.3", audioLanguage = "es"), audio = listOf(english, spanishOpus)),
-        )
-            .isEqualTo(ResolveOutcome.NoCompatibleAudio)
+        ).isEqualTo(ResolveOutcome.NoCompatibleAudio)
+    }
+
+    @Test
+    fun `video with all tracks keeps original first and each available AAC dub`() {
+        val original = AAC.copy(audioTrack = Format.AudioTrack("English original", "en.4"))
+        val spanish = AAC.copy(audioTrack = Format.AudioTrack("Spanish", "es.3"))
+        val spanishHigh = spanish.copy(itag = 141, bitrate = 256_000, averageBitrate = 256_000)
+        val frenchOpus = OPUS.copy(audioTrack = Format.AudioTrack("French", "fr.3"))
+
+        val picked =
+            streams(
+                select(
+                    request(audioItag = 140, audioTrackId = "es.3", audioLanguage = "es", includeAllAudioTracks = true),
+                    audio = listOf(spanish, frenchOpus, original, spanishHigh),
+                ),
+            )
+
+        assertThat(picked.audio.audioTrack?.id).isEqualTo("en.4")
+        assertThat(picked.additionalAudio.map { it.audioTrack?.id }).containsExactly("es.3")
+        assertThat(picked.additionalAudio.single().itag).isEqualTo(141)
     }
 
     @Test

@@ -118,6 +118,12 @@ class DownloadRunner
                     remuxer.remux(
                         videoPath = fetched.videoPart?.path,
                         audioPath = fetched.audioPart.path,
+                        additionalAudioPaths = fetched.additionalAudioParts.map { it.path },
+                        audioLanguages =
+                            fetched.streams
+                                ?.let { streams ->
+                                    (listOf(streams.audio) + streams.additionalAudio).map { it.audioLanguageTag }
+                                }.orEmpty(),
                         outputPath = output.path,
                         tags = request.tags,
                         isCancelled = { !runJob.isActive },

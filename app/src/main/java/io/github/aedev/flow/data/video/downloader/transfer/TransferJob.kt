@@ -19,6 +19,7 @@ class TransferStream(
     val file: File,
     val itag: Int,
     totalBytes: Long,
+    val trackId: String? = null,
 ) {
     @Volatile
     var totalBytes: Long = totalBytes

@@ -14,14 +14,19 @@ internal class DownloadStaging(
 
     val videoPart = File("$stem.video.part")
     val audioPart = File("$stem.audio.part")
+
+    fun additionalAudioPart(index: Int) = File("$stem.audio.$index.part")
+
     val state = File("$stem.state.json")
 
     fun output(extension: String) = File("$stem.out.$extension")
 
     /** Everything this download wrote to staging, including a half-made output. */
     fun clear() {
-        listOf(videoPart, audioPart, state, File("${state.path}.tmp"), output("mp4"), output("m4a"), output("webm"))
-            .forEach { it.delete() }
+        (
+            listOf(videoPart, audioPart, state, File("${state.path}.tmp"), output("mp4"), output("m4a"), output("webm")) +
+                additionalAudioParts()
+        ).forEach { it.delete() }
     }
 
     /** A half-made output, keeping the fetched parts for a retry. */
@@ -31,8 +36,15 @@ internal class DownloadStaging(
 
     /** The part files only, for a transfer that has to start over rather than resume. */
     fun clearParts() {
-        listOf(videoPart, audioPart, state).forEach { it.delete() }
+        (listOf(videoPart, audioPart, state) + additionalAudioParts()).forEach { it.delete() }
     }
+
+    private fun additionalAudioParts(): List<File> =
+        File(stem)
+            .parentFile
+            ?.listFiles()
+            ?.filter { it.name.matches(Regex("${File(stem).name}\\.audio\\.\\d+\\.part")) }
+            .orEmpty()
 
     private companion object {
         val UNSAFE = Regex("[^A-Za-z0-9_-]")

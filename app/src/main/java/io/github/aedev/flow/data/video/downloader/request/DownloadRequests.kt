@@ -46,6 +46,7 @@ fun Video.toDownloadRequest(
         audioItag = audioItag,
         audioTrackId = audioTrackId,
         audioLanguage = audioLanguage,
+        includeAllAudioTracks = !audioOnly && !isMusic,
         collectionId = collectionId,
         threads = threads,
         durationSeconds = duration,

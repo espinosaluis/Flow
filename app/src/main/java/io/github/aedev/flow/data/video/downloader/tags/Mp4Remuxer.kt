@@ -62,6 +62,8 @@ class Mp4Remuxer
         fun remux(
             videoPath: String?,
             audioPath: String,
+            additionalAudioPaths: List<String> = emptyList(),
+            audioLanguages: List<String?> = emptyList(),
             outputPath: String,
             tags: DownloadTags? = null,
             isCancelled: () -> Boolean = { false },
@@ -72,7 +74,10 @@ class Mp4Remuxer
             var completed = false
             return try {
                 videoPath?.let { inputs += open(it, isVideo = true) }
-                inputs += open(audioPath, isVideo = false)
+                inputs += open(audioPath, isVideo = false, language = audioLanguages.getOrNull(0))
+                additionalAudioPaths.forEachIndexed { index, path ->
+                    inputs += open(path, isVideo = false, language = audioLanguages.getOrNull(index + 1))
+                }
                 output.parentFile?.mkdirs()
                 FileOutputStream(output).use { stream ->
                     val muxer = Mp4Muxer.Builder(SeekableMuxerOutput.of(stream)).setAttemptStreamableOutputEnabled(false).build()
@@ -119,6 +124,7 @@ class Mp4Remuxer
         private fun open(
             path: String,
             isVideo: Boolean,
+            language: String? = null,
         ): Input {
             val file = File(path)
             if (!file.isFile || file.length() == 0L) throw Rejection(Result.Failure(Reason.INPUT_MISSING, "Missing or empty input: $path"))
@@ -131,6 +137,7 @@ class Mp4Remuxer
                         extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith(prefix) == true
                     } ?: throw Rejection(Result.Failure(Reason.NO_TRACK, "No $prefix track in $path"))
                 val format = extractor.getTrackFormat(index)
+                language?.takeIf { it.isNotBlank() }?.let { format.setString(MediaFormat.KEY_LANGUAGE, it) }
                 val mime = format.getString(MediaFormat.KEY_MIME).orEmpty()
                 if (isVideo && mime !in SUPPORTED_VIDEO) {
                     throw Rejection(Result.Failure(Reason.UNSUPPORTED_VIDEO, "Video codec $mime cannot go into MP4"))

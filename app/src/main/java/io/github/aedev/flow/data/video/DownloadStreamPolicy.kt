@@ -146,6 +146,23 @@ object DownloadStreamPolicy {
         }
     }
 
+    fun additionalAudioTracks(
+        formats: List<Format>,
+        primary: Format,
+    ): List<Format> =
+        formats
+            .filter(::isAacFormat)
+            .groupBy { audioTrackKey(it) }
+            .filterKeys { it != audioTrackKey(primary) }
+            .toSortedMap()
+            .values
+            .mapNotNull { tracks -> tracks.maxByOrNull(::audioBitrate) }
+
+    private fun audioTrackKey(format: Format): String =
+        format.audioTrack?.id?.takeIf { it.isNotBlank() }
+            ?: audioLocale(format)?.toLanguageTag()?.let { "${it.lowercase(Locale.ROOT)}:${format.isOriginal}" }
+            ?: "default"
+
     fun isAacFormat(format: Format): Boolean = containerOf(format.mimeType) == AUDIO_MP4
 
     private fun containerOf(mimeType: String): String = mimeType.substringBefore(';').trim().lowercase()

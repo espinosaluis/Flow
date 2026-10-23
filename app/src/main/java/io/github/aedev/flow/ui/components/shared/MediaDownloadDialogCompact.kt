@@ -87,7 +87,6 @@ fun MediaDownloadDialogCompact(
             separator = separatorDot,
         )
     val prefs = remember(context) { PlayerPreferences(context) }
-    val preferredLang by prefs.preferredAudioLanguage.collectAsState(initial = "")
     val defaultThreads by prefs.downloadThreads.collectAsState(initial = 3)
     val lastType by prefs.lastDownloadType.collectAsState(initial = null)
     val lastHeight by prefs.lastDownloadHeight.collectAsState(initial = null)
@@ -191,7 +190,7 @@ fun MediaDownloadDialogCompact(
                 DownloadStreamPolicy.videoHeight(it) == selectedHeight &&
                     DownloadStreamPolicy.videoCodecKey(it) == selectedCodec
             } ?: return
-        val audio = DownloadStreamPolicy.pickAacAudio(audioStreams, preferredLang)
+        val audio = DownloadStreamPolicy.pickAacAudio(audioStreams, "original")
         if (audio == null) {
             Toast.makeText(context, context.getString(R.string.download_no_compatible_audio), Toast.LENGTH_LONG).show()
             return

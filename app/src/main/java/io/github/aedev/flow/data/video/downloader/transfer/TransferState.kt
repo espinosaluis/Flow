@@ -22,6 +22,7 @@ data class TransferState(
         val totalBytes: Long,
         val completedBlocks: List<Int>,
         val partialBlockBytes: Map<Int, Long>,
+        val trackId: String? = null,
     )
 
     companion object {
@@ -36,6 +37,7 @@ data class TransferState(
                         totalBytes = stream.totalBytes,
                         completedBlocks = stream.completedBlocks.sorted(),
                         partialBlockBytes = stream.partialBlockBytes.toMap(),
+                        trackId = stream.trackId,
                     )
                 },
             )
@@ -64,7 +66,8 @@ data class TransferState(
         var restored = false
         streams.forEach { stream ->
             val saved =
-                this.streams.firstOrNull { it.role == stream.role && it.itag == stream.itag } ?: return@forEach
+                this.streams.firstOrNull { it.role == stream.role && it.itag == stream.itag && it.trackId == stream.trackId }
+                    ?: return@forEach
             if (saved.totalBytes <= 0L || saved.totalBytes != stream.totalBytes) return@forEach
             if (!stream.file.exists() || stream.file.length() != saved.totalBytes) return@forEach
             stream.completedBlocks.addAll(saved.completedBlocks)

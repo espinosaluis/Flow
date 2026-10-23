@@ -23,6 +23,8 @@ data class DownloadRequest(
     val audioItag: Int? = null,
     val audioTrackId: String? = null,
     val audioLanguage: String? = null,
+    /** Keep every available AAC language track in video downloads. Older queued requests stay single-track. */
+    val includeAllAudioTracks: Boolean = false,
     val collectionId: String? = null,
     val threads: Int? = null,
     val durationSeconds: Int = 0,

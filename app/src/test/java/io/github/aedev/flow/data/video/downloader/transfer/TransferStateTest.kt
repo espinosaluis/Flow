@@ -46,6 +46,17 @@ class TransferStateTest {
     }
 
     @Test
+    fun `audio tracks sharing an itag restore only their own blocks`() {
+        val english = TransferStream(StreamRole.AUDIO, "u", folder.newFile().apply { writeBytes(ByteArray(100)) }, 140, 100, "en.4")
+        english.completedBlocks.add(0)
+        val saved = TransferState.of(TransferJob("v", listOf(english), 1, "ua"))
+        val spanish = TransferStream(StreamRole.AUDIO, "u", folder.newFile().apply { writeBytes(ByteArray(100)) }, 140, 100, "es.3")
+
+        assertThat(saved.restoreInto(listOf(spanish))).isFalse()
+        assertThat(spanish.completedBlocks).isEmpty()
+    }
+
+    @Test
     fun `an unreadable state file restores nothing`() {
         val file = folder.newFile().apply { writeText("{broken") }
 

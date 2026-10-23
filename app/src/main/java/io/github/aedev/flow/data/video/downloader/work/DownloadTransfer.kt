@@ -45,6 +45,7 @@ sealed interface FetchOutcome {
     data class Fetched(
         val videoPart: File?,
         val audioPart: File,
+        val additionalAudioParts: List<File> = emptyList(),
         val durationMs: Long,
         /** The streams it came from, for the quality the row shows; null after a SABR fallback. */
         val streams: ResolvedStreams? = null,
@@ -123,8 +124,19 @@ class DownloadTransfer
                             staging.audioPart,
                             streams.audio.itag,
                             streams.audio.contentLength ?: 0L,
+                            streams.audio.audioTrack?.id,
                         ),
-                    )
+                    ) +
+                        streams.additionalAudio.mapIndexed { index, audio ->
+                            TransferStream(
+                                StreamRole.AUDIO,
+                                audio.url.orEmpty(),
+                                staging.additionalAudioPart(index),
+                                audio.itag,
+                                audio.contentLength ?: 0L,
+                                audio.audioTrack?.id ?: audio.audioLanguageTag ?: "track-$index",
+                            )
+                        }
                 if (TransferState.read(staging.state)?.restoreInto(parts) == true) Log.d(TAG, "${request.videoId}: resuming saved blocks")
                 val job = TransferJob(request.videoId, parts, threads, YouTubeClient.USER_AGENT_WEB)
                 val result =
@@ -144,7 +156,13 @@ class DownloadTransfer
                     }
                 when (result) {
                     TransferResult.Completed -> {
-                        return FetchOutcome.Fetched(video?.let { staging.videoPart }, staging.audioPart, streams.durationMs, streams)
+                        return FetchOutcome.Fetched(
+                            video?.let { staging.videoPart },
+                            staging.audioPart,
+                            streams.additionalAudio.indices.map(staging::additionalAudioPart),
+                            streams.durationMs,
+                            streams,
+                        )
                     }
 
                     TransferResult.Stopped -> {
@@ -159,7 +177,10 @@ class DownloadTransfer
                     is TransferResult.Denied -> {
                         val itag = StreamDenialClassifier.itagOf(result.url)?.toIntOrNull()
                         ClientGateTracker.reportDenied(result.url)
-                        if (itag != null && (refusals.merge(itag, 1, Int::plus) ?: 0) >= 2) avoid = avoid + itag
+                        if (itag != null && (refusals.merge(itag, 1, Int::plus) ?: 0) >= 2) {
+                            if (request.includeAllAudioTracks) return FetchOutcome.Failed(FetchFailure.REFUSED)
+                            avoid = avoid + itag
+                        }
                     }
 
                     is TransferResult.Failed -> {
@@ -174,7 +195,7 @@ class DownloadTransfer
                     }
                 }
             }
-            return viaSabr(request, staging, itemId)
+            return if (request.includeAllAudioTracks) FetchOutcome.Failed(FetchFailure.REFUSED) else viaSabr(request, staging, itemId)
         }
 
         /**
@@ -241,7 +262,11 @@ class DownloadTransfer
                     throw e
                 }
             if (!done) return FetchOutcome.Failed(FetchFailure.REFUSED)
-            return FetchOutcome.Fetched(staging.videoPart.takeUnless { request.wantsAudioOnly }, staging.audioPart, info.durationMs)
+            return FetchOutcome.Fetched(
+                staging.videoPart.takeUnless { request.wantsAudioOnly },
+                staging.audioPart,
+                durationMs = info.durationMs,
+            )
         }
 
         private suspend fun <T> reportingProgress(

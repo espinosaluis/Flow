@@ -21,6 +21,7 @@ data class ResolvedStreams(
     val video: Format?,
     val audio: Format,
     val durationMs: Long,
+    val additionalAudio: List<Format> = emptyList(),
     /** The video's caption tracks as WebVTT, from the same response, for the files kept beside it. */
     val captions: List<ResolvedCaption> = emptyList(),
 )
@@ -99,13 +100,21 @@ class DownloadStreamResolver
                     DownloadStreamPolicy
                         .buildDownloadAudioFormats(result.audioFormats)
                         .filterNot { it.itag in avoidItags }
-                val language = request.audioLanguage ?: defaults.language
+                val language =
+                    if (request.includeAllAudioTracks &&
+                        !request.wantsAudioOnly
+                    ) {
+                        "original"
+                    } else {
+                        request.audioLanguage ?: defaults.language
+                    }
                 val durationMs = result.durationMs()
                 // A song is only its audio, so it is the one download the song quality setting shapes.
                 val quality = if (request.wantsAudioOnly) defaults.musicQuality else MusicAudioQuality.HIGH
 
                 val audio =
                     request.audioItag
+                        .takeUnless { request.includeAllAudioTracks && !request.wantsAudioOnly }
                         ?.let { itag ->
                             audioFormats.firstOrNull {
                                 it.itag == itag &&
@@ -113,10 +122,10 @@ class DownloadStreamResolver
                                     (request.audioLanguage == null || it.audioLanguageTag.equals(request.audioLanguage, ignoreCase = true))
                             }
                         }?.takeIf { DownloadStreamPolicy.isAacFormat(it) }
-                        ?: request.audioTrackId?.let { id ->
+                        ?: request.audioTrackId.takeUnless { request.includeAllAudioTracks && !request.wantsAudioOnly }?.let { id ->
                             DownloadStreamPolicy.pickAacAudio(audioFormats.filter { it.audioTrack?.id == id }, language, quality)
                         }
-                        ?: if (request.audioTrackId == null || request.audioLanguage != null) {
+                        ?: if (request.includeAllAudioTracks || request.audioTrackId == null || request.audioLanguage != null) {
                             DownloadStreamPolicy.pickAacAudio(audioFormats, language, quality)
                         } else {
                             null
@@ -131,13 +140,16 @@ class DownloadStreamResolver
                     return ResolveOutcome.Resolved(ResolvedStreams(video = null, audio = audio, durationMs = durationMs))
                 }
 
+                val additionalAudio =
+                    if (request.includeAllAudioTracks) DownloadStreamPolicy.additionalAudioTracks(audioFormats, audio) else emptyList()
+
                 val videoFormats =
                     DownloadStreamPolicy
                         .buildDownloadVideoFormats(result.videoFormats)
                         .filterNot { it.itag in avoidItags }
                 request.videoItag
                     ?.let { itag -> videoFormats.firstOrNull { it.itag == itag } }
-                    ?.let { return ResolveOutcome.Resolved(ResolvedStreams(it, audio, durationMs)) }
+                    ?.let { return ResolveOutcome.Resolved(ResolvedStreams(it, audio, durationMs, additionalAudio)) }
 
                 val height =
                     DefaultDownloadSelection.pickHeight(
@@ -150,7 +162,7 @@ class DownloadStreamResolver
                         .rankCodecs(atHeight.map(DownloadStreamPolicy::videoCodecKey), request.videoCodec ?: defaults.codec)
                         .firstOrNull() ?: return ResolveOutcome.Unavailable
                 val video = atHeight.first { DownloadStreamPolicy.videoCodecKey(it) == codec }
-                return ResolveOutcome.Resolved(ResolvedStreams(video, audio, durationMs))
+                return ResolveOutcome.Resolved(ResolvedStreams(video, audio, durationMs, additionalAudio))
             }
 
             private fun VideoExtractionResult.durationMs(): Long =

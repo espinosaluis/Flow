@@ -39,7 +39,6 @@ fun MediaDownloadDialog(
             io.github.aedev.flow.data.local
                 .PlayerPreferences(context)
         }
-    val preferredLang by audioLangPref.preferredAudioLanguage.collectAsState(initial = "")
     val lastSubtitleLanguage by audioLangPref.lastDownloadSubtitleLanguage.collectAsState(initial = null)
     val subtitleOptions = remember(subtitles) { downloadableSubtitles(subtitles) }
     var subtitleChoice by remember(subtitleOptions, lastSubtitleLanguage) {
@@ -143,7 +142,7 @@ fun MediaDownloadDialog(
                                 val compatibleAudio =
                                     DownloadStreamPolicy.pickAacAudio(
                                         allAudio = effectiveAudioForDownload,
-                                        preferredLang = preferredLang,
+                                        preferredLang = "original",
                                     )
                                 if (compatibleAudio == null) {
                                     Toast
