@@ -120,7 +120,13 @@ fun VideoQuickActionsBottomSheet(
                         showWatchProgress = LocalVideoCardPreferences.current.showWatchProgress,
                     )
                 }
-                VideoPrimaryActions(video, viewModel, onSave = { sheet.hideThen { page = VideoMenuPage.Save } }, onDismiss = close)
+                VideoPrimaryActions(
+                    video = video,
+                    title = title,
+                    viewModel = viewModel,
+                    onSave = { sheet.hideThen { page = VideoMenuPage.Save } },
+                    onDismiss = close,
+                )
                 QuickActionsGroup(title = stringResource(R.string.section_algorithm), rows = feedRows(video, viewModel, close))
                 if (!video.isShort) {
                     QuickActionsGroup(
@@ -160,6 +166,7 @@ fun VideoQuickActionsBottomSheet(
 @Composable
 private fun VideoPrimaryActions(
     video: Video,
+    title: String,
     viewModel: QuickActionsViewModel,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
@@ -180,7 +187,7 @@ private fun VideoPrimaryActions(
                 icon = Icons.Outlined.Download,
                 label = stringResource(R.string.download),
                 onClick = {
-                    viewModel.requestDownload(video)
+                    viewModel.requestDownload(video.copy(title = title))
                     onDismiss()
                 },
             ),

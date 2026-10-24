@@ -2,6 +2,7 @@ package io.github.aedev.flow.ui.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,6 +24,7 @@ import io.github.aedev.flow.ui.components.layout.flowBottomContentPadding
 import io.github.aedev.flow.ui.components.shared.FlowFeedProgress
 import io.github.aedev.flow.ui.components.shared.MediaShortsShelf
 import io.github.aedev.flow.ui.components.shared.card.MediaVideoCard
+import io.github.aedev.flow.ui.components.shared.card.VideoCardDefaults
 import io.github.aedev.flow.ui.components.shared.card.VideoCardLayout
 import io.github.aedev.flow.ui.components.shared.dpadFocusGroup
 import io.github.aedev.flow.ui.components.shared.feedStripCardWidth
@@ -30,6 +32,7 @@ import io.github.aedev.flow.ui.components.shared.rememberFeedGridPlan
 
 private const val FEED_FOOTER_MIN_VIDEOS = 100
 private val FeedTopPadding = 4.dp
+private val InlineActionsMinCardWidth = 144.dp
 
 @Composable
 internal fun HomeFeedGrid(
@@ -93,18 +96,24 @@ internal fun HomeFeedGrid(
         ) { index, row ->
             when (row) {
                 is HomeFeedRow.VideoCard -> {
+                    val isListCard = plan.isListCard(index)
                     LaunchedEffect(row.video.id, row.video.channelId, row.video.channelThumbnailUrl) {
                         onEnrichChannelMetadata(row.video)
                     }
                     MediaVideoCard(
                         video = row.video,
-                        layout = if (plan.isListCard(index)) VideoCardLayout.Row else VideoCardLayout.Stacked,
+                        layout = if (isListView || !isListCard) VideoCardLayout.Stacked else VideoCardLayout.Row,
                         onClick = { onVideoClick(row.video) },
-                        useInternalPadding = !feedLayout.cardsBleed,
+                        useInternalPadding = if (isListView) true else !feedLayout.cardsBleed,
                         thumbnailWidth = plan.listThumbnailWidth,
                         reason = channelMemoryReason.takeIf { uiState.origins[row.video.id]?.kind == HomeCardOrigin.Kind.CHANNEL_MEMORY },
                         whyShown = uiState.origins[row.video.id]?.label(),
-                        modifier = Modifier.testTag("home_video_card"),
+                        showInlineActions = isListView || (!isListCard && feedLayout.cardWidth >= InlineActionsMinCardWidth),
+                        inlineMenu = isListView,
+                        modifier =
+                            Modifier
+                                .then(if (isListView) Modifier.padding(bottom = VideoCardDefaults.Inset) else Modifier)
+                                .testTag("home_video_card"),
                     )
                 }
 

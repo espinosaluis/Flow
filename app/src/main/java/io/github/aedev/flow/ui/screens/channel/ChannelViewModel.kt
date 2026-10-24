@@ -11,6 +11,7 @@ import io.github.aedev.flow.data.local.ChannelSubscription
 import io.github.aedev.flow.data.local.PlayerPreferences
 import io.github.aedev.flow.data.local.SubscriptionRepository
 import io.github.aedev.flow.data.local.dao.SubscriptionGroupDao
+import io.github.aedev.flow.data.local.dao.WatchHistoryDao
 import io.github.aedev.flow.data.local.entity.SubscriptionGroupEntity
 import io.github.aedev.flow.data.model.Comment
 import io.github.aedev.flow.data.model.SubscriptionGroup
@@ -46,6 +47,7 @@ class ChannelViewModel
         @ApplicationContext private val appContext: Context,
         private val subscriptionRepository: SubscriptionRepository,
         private val subscriptionGroupDao: SubscriptionGroupDao,
+        private val watchHistoryDao: WatchHistoryDao,
         private val notesRepository: NotesRepository,
         private val playerPreferences: PlayerPreferences,
     ) : ViewModel() {
@@ -158,8 +160,16 @@ class ChannelViewModel
         private var requestedChannelUrl: String? = null
         internal val communityUiState: StateFlow<ChannelCommunityUiState> = communityController.state
 
-        private val tabController = ChannelTabController(viewModelScope)
+        private val hiddenVideoIds = MutableStateFlow<Set<String>>(emptySet())
+        private val tabController = ChannelTabController(viewModelScope, hiddenVideoIds)
         internal val tabStates: StateFlow<Map<ChannelTabKind, ChannelTabState>> = tabController.states
+
+        fun hideMarkedWatched(videoId: String) {
+            hiddenVideoIds.update { it + videoId }
+            _uiState.update { state ->
+                state.copy(searchResults = state.searchResults.filterNot { it.id == videoId })
+            }
+        }
 
         private fun channelOwner(): FeedItemOwner {
             val state = _uiState.value
@@ -208,6 +218,13 @@ class ChannelViewModel
             }
 
             _uiState.update { it.copy(isLoading = true, error = null) }
+            viewModelScope.launch(PerformanceDispatcher.diskIO) {
+                val completedIds = watchHistoryDao.getCompletedVideoIds().toSet()
+                hiddenVideoIds.update { it + completedIds }
+                _uiState.update { state ->
+                    state.copy(searchResults = state.searchResults.filterNot { it.id in completedIds })
+                }
+            }
             viewModelScope.launch(PerformanceDispatcher.networkIO) {
                 val browseId =
                     directId ?: YouTube.resolveChannelId(checkNotNull(vanityUrl)).getOrElse { error ->
@@ -389,7 +406,10 @@ class ChannelViewModel
                         onSuccess = { page ->
                             _uiState.update {
                                 it.copy(
-                                    searchResults = page.videos.distinctByNonBlankKey(Video::id),
+                                    searchResults =
+                                        page.videos
+                                            .distinctByNonBlankKey(Video::id)
+                                            .filterNot { video -> video.id in hiddenVideoIds.value },
                                     searchContinuation = page.continuation,
                                     isSearching = false,
                                     searchErrorLog = null,

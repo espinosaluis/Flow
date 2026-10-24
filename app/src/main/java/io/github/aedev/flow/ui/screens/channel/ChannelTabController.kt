@@ -4,6 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import io.github.aedev.flow.data.paging.FeedTabPagingSource
 import io.github.aedev.flow.innertube.YouTube
 import io.github.aedev.flow.innertube.pages.channel.ChannelFilterGroup
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -40,6 +42,7 @@ internal data class ChannelTabState(
  */
 internal class ChannelTabController(
     private val scope: CoroutineScope,
+    private val hiddenVideoIds: StateFlow<Set<String>>,
 ) {
     private val _states = MutableStateFlow<Map<ChannelTabKind, ChannelTabState>>(emptyMap())
     val states: StateFlow<Map<ChannelTabKind, ChannelTabState>> = _states.asStateFlow()
@@ -149,10 +152,14 @@ internal class ChannelTabController(
                     )
                 },
             ).flow.cachedIn(scope)
+        val visibleItems =
+            pager.combine(hiddenVideoIds) { page, hidden ->
+                page.filter { item -> item !is FeedItem.VideoItem || item.video.id !in hidden }
+            }
 
         _states.update { states ->
             val current = states[kind] ?: ChannelTabState()
-            states + (kind to current.copy(items = pager, selected = selected))
+            states + (kind to current.copy(items = visibleItems, selected = selected))
         }
     }
 

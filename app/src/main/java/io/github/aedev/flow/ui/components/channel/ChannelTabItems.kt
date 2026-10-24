@@ -41,6 +41,8 @@ import io.github.aedev.flow.ui.components.shared.card.VideoCardDefaults
 import io.github.aedev.flow.ui.components.shared.card.VideoCardLayout
 import io.github.aedev.flow.ui.components.shared.rememberFeedGridPlan
 
+private val InlineActionsMinCardWidth = 144.dp
+
 /**
  * Every channel tab's list, whatever it holds.
  *
@@ -90,7 +92,7 @@ internal fun ChannelTabItems(
                 spansOwnRow = { pagingItems.peek(it).spansRow() },
                 includeLastRun = pagingItems.loadState.append.endOfPaginationReached,
                 itemsKey = pagingItems.itemSnapshotList,
-                compactRowSpacing = feedLayout.cardSpacing,
+                compactRowSpacing = if (isGridView) feedLayout.cardSpacing else 0.dp,
             )
         val sidePadding = if (isShorts) ShortCardDefaults.gridPadding(feedLayout) else plan.horizontalPadding
         val padding =
@@ -131,12 +133,16 @@ internal fun ChannelTabItems(
             ) { index ->
                 when (val item = pagingItems[index]) {
                     is FeedItem.VideoItem -> {
+                        val isListCard = plan.isListCard(index)
                         MediaVideoCard(
                             video = item.video,
-                            layout = if (plan.isListCard(index)) VideoCardLayout.Row else VideoCardLayout.Stacked,
+                            layout = if (!isGridView || !isListCard) VideoCardLayout.Stacked else VideoCardLayout.Row,
                             showChannel = false,
                             onClick = { onVideoClick(item.video) },
                             thumbnailWidth = plan.listThumbnailWidth,
+                            showInlineActions = !isGridView || (!isListCard && feedLayout.cardWidth >= InlineActionsMinCardWidth),
+                            inlineMenu = !isGridView,
+                            modifier = if (isGridView) Modifier else Modifier.padding(bottom = VideoCardDefaults.Inset),
                         )
                     }
 

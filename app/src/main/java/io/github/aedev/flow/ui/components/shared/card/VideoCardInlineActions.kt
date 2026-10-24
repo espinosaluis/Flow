@@ -25,7 +25,7 @@ internal fun VideoCardInlineActions(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-        IconButton(onClick = { actions.onDownload(state.video) }) {
+        IconButton(onClick = { actions.onDownload(state.video.copy(title = state.title)) }) {
             Icon(
                 imageVector = Icons.Outlined.Download,
                 contentDescription = stringResource(R.string.download),

@@ -83,11 +83,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
 import io.github.aedev.flow.R
+import io.github.aedev.flow.data.engagement.FeedInvalidationBus
 import io.github.aedev.flow.data.model.SubscriptionGroup
 import io.github.aedev.flow.data.model.Video
 import io.github.aedev.flow.innertube.pages.channel.ChannelHeader
@@ -153,6 +155,15 @@ fun ChannelScreen(
             uiState.selectedTab !in setOf(ChannelTabKind.Home, ChannelTabKind.Posts)
 
     LaunchedEffect(channelUrl) { viewModel.loadChannel(channelUrl) }
+    LifecycleStartEffect(viewModel) {
+        val job =
+            coroutineScope.launch {
+                FeedInvalidationBus.events.collect { event ->
+                    if (event is FeedInvalidationBus.Event.MarkedWatched) viewModel.hideMarkedWatched(event.videoId)
+                }
+            }
+        onStopOrDispose { job.cancel() }
+    }
 
     var showCollapsedChannelTitle by remember(channelUrl) { mutableStateOf(false) }
     val collapsedChannelTitle = uiState.header?.title.orEmpty()

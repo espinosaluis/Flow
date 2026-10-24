@@ -145,6 +145,9 @@ interface WatchHistoryDao {
     @Query("SELECT videoId FROM watch_history WHERE isMusic = 0 AND isLocal = 0")
     suspend fun getAllWatchedVideoIds(): List<String>
 
+    @Query("SELECT videoId FROM watch_history WHERE isMusic = 0 AND isLocal = 0 AND duration > 0 AND position >= duration")
+    suspend fun getCompletedVideoIds(): List<String>
+
     /** Every Short with progress; which of them count as watched is [WatchedThreshold.isWatched]'s call. */
     @Query(
         "SELECT videoId, position, duration, timestamp FROM watch_history " +

@@ -26,8 +26,11 @@ import io.github.aedev.flow.ui.components.rememberFeedGridLayout
 import io.github.aedev.flow.ui.components.shared.FlowEmptyState
 import io.github.aedev.flow.ui.components.shared.FlowLoadingIndicator
 import io.github.aedev.flow.ui.components.shared.card.MediaVideoCard
+import io.github.aedev.flow.ui.components.shared.card.VideoCardDefaults
 import io.github.aedev.flow.ui.components.shared.card.VideoCardLayout
 import io.github.aedev.flow.ui.components.shared.rememberFeedGridPlan
+
+private val InlineActionsMinCardWidth = 144.dp
 
 @Composable
 internal fun ChannelSearchResults(
@@ -111,12 +114,16 @@ internal fun ChannelSearchResults(
                         contentType = { _, _ -> "video" },
                         span = { index, _ -> plan.span(index, spansOwnRow = false, maxLineSpan = maxLineSpan) },
                     ) { index, video ->
+                        val isListCard = plan.isListCard(index)
                         MediaVideoCard(
                             video = video,
-                            layout = if (plan.isListCard(index)) VideoCardLayout.Row else VideoCardLayout.Stacked,
+                            layout = if (!isGridView || !isListCard) VideoCardLayout.Stacked else VideoCardLayout.Row,
                             showChannel = false,
                             onClick = { onVideoClick(video) },
                             thumbnailWidth = plan.listThumbnailWidth,
+                            showInlineActions = !isGridView || (!isListCard && feedLayout.cardWidth >= InlineActionsMinCardWidth),
+                            inlineMenu = !isGridView,
+                            modifier = if (isGridView) Modifier else Modifier.padding(bottom = VideoCardDefaults.Inset),
                         )
                     }
                     item(key = "bottom_gap", span = { GridItemSpan(maxLineSpan) }) { Spacer(Modifier.height(16.dp)) }
