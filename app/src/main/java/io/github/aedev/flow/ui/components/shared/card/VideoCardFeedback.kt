@@ -48,7 +48,7 @@ internal fun VideoCardFeedback(
         )
         Spacer(Modifier.width(ButtonDefaults.ExtraSmallIconSpacing))
         Text(
-            text = stringResource(R.string.mark_as_watched),
+            text = stringResource(if (watched) R.string.quick_action_watched else R.string.mark_as_watched),
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

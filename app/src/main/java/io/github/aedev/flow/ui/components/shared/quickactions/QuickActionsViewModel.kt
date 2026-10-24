@@ -184,7 +184,6 @@ class QuickActionsViewModel
             viewModelScope.launch {
                 runAction {
                     feedback.markWatched(video)
-                    emit(R.string.mark_as_watched_toast)
                 }
             }
         }
