@@ -26,7 +26,8 @@ class TvShellViewModel
                 preferences.defaultNavTabIndex,
                 preferences.homeNavigationEnabled,
                 preferences.musicNavigationEnabled,
-            ) { order, defaultTabId, home, music ->
-                tvNavigation(order, defaultTabId, NavigationVisibility(home = home, music = music))
+                preferences.libraryNavigationEnabled,
+            ) { order, defaultTabId, home, music, library ->
+                tvNavigation(order, defaultTabId, NavigationVisibility(home = home, music = music, library = library))
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
     }

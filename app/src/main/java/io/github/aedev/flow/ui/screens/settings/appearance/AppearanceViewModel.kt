@@ -60,10 +60,18 @@ class AppearanceViewModel
                 preferences.homeNavigationEnabled,
                 preferences.shortsNavigationEnabled,
                 preferences.musicNavigationEnabled,
+                preferences.libraryNavigationEnabled,
                 preferences.searchNavigationEnabled,
                 preferences.categoriesNavigationEnabled,
-            ) { home, shorts, music, search, categories ->
-                NavigationVisibility(home = home, shorts = shorts, music = music, search = search, categories = categories)
+            ) { values ->
+                NavigationVisibility(
+                    home = values[0],
+                    shorts = values[1],
+                    music = values[2],
+                    library = values[3],
+                    search = values[4],
+                    categories = values[5],
+                )
             }.asState(NavigationVisibility())
         val hideNavOnScroll = preferences.bottomNavHideOnScroll.asState(true)
         val navTabOrder = preferences.navTabOrder.asState(DEFAULT_NAV_TAB_ORDER)
@@ -107,6 +115,8 @@ class AppearanceViewModel
         fun setShortsTab(enabled: Boolean) = write { preferences.setShortsNavigationEnabled(enabled) }
 
         fun setMusicTab(enabled: Boolean) = write { preferences.setMusicNavigationEnabled(enabled) }
+
+        fun setLibraryTab(enabled: Boolean) = write { preferences.setLibraryNavigationEnabled(enabled) }
 
         fun setSearchTab(enabled: Boolean) = write { preferences.setSearchNavigationEnabled(enabled) }
 

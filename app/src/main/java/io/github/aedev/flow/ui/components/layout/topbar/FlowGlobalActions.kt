@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
  * App-shell destinations that must stay reachable from every root screen.
  *
  * Before this existed, `notifications` had a single entry point — the Home top bar — so turning
- * Home off in navigation settings orphaned the screen entirely. Root tabs 3 (Subscriptions) and 4
- * (Library) can never be hidden, so rendering these actions on every backless destination
- * guarantees reachability for any navigation configuration.
+ * Home off in navigation settings orphaned the screen entirely. Root tab 3 (Subscriptions) cannot
+ * be hidden, so rendering these actions on every backless destination guarantees reachability for
+ * any navigation configuration.
  *
  * [unreadNotifications] is the flow rather than the current value so that a new notification
  * invalidates only the badge that collects it, instead of the whole shell that provides it.

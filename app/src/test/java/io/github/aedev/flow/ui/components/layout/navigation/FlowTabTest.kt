@@ -35,6 +35,15 @@ class FlowTabTest {
     }
 
     @Test
+    fun hiddenLibraryFallsBackToSubscriptionsWhenItWasTheDefault() {
+        val visibility = NavigationVisibility(home = false, shorts = false, music = false, library = false)
+        val order = listOf(4, 3, 0, 1, 2, 5, 6)
+
+        assertEquals(listOf(FlowTab.Subscriptions), visibleFlowTabs(order, visibility))
+        assertEquals(FlowTab.Subscriptions, resolveDefaultFlowTab(FlowTab.Library.id, order, visibility))
+    }
+
+    @Test
     fun tabsFollowTheSavedOrder() {
         val tabs =
             visibleFlowTabs(
@@ -86,8 +95,8 @@ class FlowTabTest {
 
     /**
      * Settings and Notifications live in the top bar of every root destination, which only works if
-     * a root destination always exists. Subscriptions and Library are unconditional in
-     * [visibleFlowTabs]; this pins that down so hiding tabs can never orphan those screens.
+     * a root destination always exists. Subscriptions is unconditional in [visibleFlowTabs]; this
+     * pins that down so hiding tabs can never orphan those screens.
      */
     @Test
     fun everyVisibilityCombinationKeepsAnUnhideableRootDestination() {
@@ -99,21 +108,22 @@ class FlowTabTest {
                 emptyList(),
             )
 
-        for (bits in 0 until 32) {
+        for (bits in 0 until 64) {
             val visibility =
                 NavigationVisibility(
                     home = bits and 1 != 0,
                     shorts = bits and 2 != 0,
                     music = bits and 4 != 0,
-                    search = bits and 8 != 0,
-                    categories = bits and 16 != 0,
+                    library = bits and 8 != 0,
+                    search = bits and 16 != 0,
+                    categories = bits and 32 != 0,
                 )
 
             for (order in orders) {
                 val visible = visibleFlowTabs(order, visibility)
                 assertTrue(
                     "no unhideable root destination for $visibility / $order",
-                    visible.contains(FlowTab.Subscriptions) || visible.contains(FlowTab.Library),
+                    visible.contains(FlowTab.Subscriptions),
                 )
 
                 val resolved = resolveDefaultFlowTab(FlowTab.Home.id, order, visibility)

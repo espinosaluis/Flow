@@ -27,9 +27,10 @@ class TvTabsTest {
 
     @Test
     fun `hides the tabs the user hid`() {
-        val tabs = tvNavigation(emptyList(), FlowTab.Home.id, NavigationVisibility(home = false, music = false)).tabs
+        val tabs = tvNavigation(emptyList(), FlowTab.Home.id, NavigationVisibility(home = false, music = false, library = false)).tabs
 
-        assertThat(tabs).containsNoneOf(FlowTab.Home, FlowTab.Music)
+        assertThat(tabs).containsNoneOf(FlowTab.Home, FlowTab.Music, FlowTab.Library)
+        assertThat(tabs).contains(FlowTab.Subscriptions)
     }
 
     @Test

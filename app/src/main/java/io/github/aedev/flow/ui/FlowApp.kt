@@ -101,6 +101,7 @@ fun FlowApp(
     val isHomeNavigationEnabled by preferences.homeNavigationEnabled.collectAsState(initial = true)
     val isShortsNavigationEnabled by preferences.effectiveShortsNavigationEnabled.collectAsState(initial = true)
     val isMusicNavigationEnabled by preferences.musicNavigationEnabled.collectAsState(initial = true)
+    val isLibraryNavigationEnabled by preferences.libraryNavigationEnabled.collectAsState(initial = true)
     val isSearchNavigationEnabled by preferences.searchNavigationEnabled.collectAsState(initial = false)
     val isCategoriesNavigationEnabled by preferences.categoriesNavigationEnabled.collectAsState(initial = false)
     val disableShortsPlayer by preferences.effectiveDisableShortsPlayer.collectAsState(initial = false)
@@ -120,6 +121,7 @@ fun FlowApp(
             home = isHomeNavigationEnabled,
             shorts = isShortsNavigationEnabled,
             music = isMusicNavigationEnabled,
+            library = isLibraryNavigationEnabled,
             search = isSearchNavigationEnabled,
             categories = isCategoriesNavigationEnabled,
         )

@@ -1212,6 +1212,8 @@
     <string name="settings_shorts_nav_tab_subtitle">Show the Shorts tab in the bottom navigation bar.</string>
     <string name="settings_music_nav_tab_title">Music tab in navigation</string>
     <string name="settings_music_nav_tab_subtitle">Show the Music tab in the bottom navigation bar.</string>
+    <string name="settings_library_nav_tab_title">Library tab in navigation</string>
+    <string name="settings_library_nav_tab_subtitle">Show the Library tab in the navigation bar.</string>
     <string name="settings_search_nav_tab_title">Search tab in navigation</string>
     <string name="settings_search_nav_tab_subtitle">Add a Search tab to the navigation bar</string>
     <string name="nav_search">Search</string>

@@ -60,13 +60,14 @@ data class NavigationVisibility(
     val home: Boolean = true,
     val shorts: Boolean = true,
     val music: Boolean = true,
+    val library: Boolean = true,
     val search: Boolean = false,
     val categories: Boolean = false,
 )
 
 /**
- * The tabs to show, in the user's order. Subscriptions and Library cannot be hidden: every root
- * destination carries Notifications and Settings in its top bar, so one must always exist.
+ * The tabs to show, in the user's order. Subscriptions cannot be hidden: every root destination
+ * carries Notifications and Settings in its top bar, so one must always exist.
  */
 fun visibleFlowTabs(
     order: List<Int>,
@@ -78,7 +79,7 @@ fun visibleFlowTabs(
             if (visibility.shorts) add(FlowTab.Shorts)
             if (visibility.music) add(FlowTab.Music)
             add(FlowTab.Subscriptions)
-            add(FlowTab.Library)
+            if (visibility.library) add(FlowTab.Library)
             if (visibility.search) add(FlowTab.Search)
             if (visibility.categories) add(FlowTab.Explore)
         }
